@@ -62,6 +62,9 @@ class SpotifyOSC
         OscMessage oscMsg = new OscMessage("/chatbox/input", rawMsg, true);
         UDPSender udpSend = new UDPSender("127.0.0.1", 9000);
         udpSend.Send(oscMsg);
+        OscMessage oscMsg1 = new OscMessage("/chatbox/typing", true);
+        UDPSender udpSend1 = new UDPSender("127.0.0.1", 9000);
+        udpSend1.Send(oscMsg1);
     }
 
     static void preventCloseLoop()
