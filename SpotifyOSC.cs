@@ -34,7 +34,15 @@ class SpotifyOSC
             string[] spotifyTitleArray = spotifyProcess[0].MainWindowTitle.Split(" - ");
             if (spotifyTitleArray.Length > 1)
             {
-                Console.Title = "VRChat Spotify OSC - (" + spotifyTitleArray[1] + " by " + spotifyTitleArray[0] + ")";
+                if (spotifyTitleArray.Length > 2)
+                {
+                    Console.Title = "VRChat Spotify OSC - (" + spotifyTitleArray[1] + " - " + spotifyTitleArray[2] + " by " + spotifyTitleArray[0] + ")";
+                }
+                else
+                {
+                    Console.Title = "VRChat Spotify OSC - (" + spotifyTitleArray[1] + " by " + spotifyTitleArray[0] + ")";
+                }
+                
                 lastSong = spotifyTitleArray[1];
                 updateOSC(spotifyTitleArray);
                 preventCloseLoop();
@@ -58,7 +66,15 @@ class SpotifyOSC
 
     static void updateOSC(string[] spotifyArray)
     {
-        string rawMsg = "\"" + spotifyArray[1] + "\" by " + spotifyArray[0];
+        string rawMsg = "";
+        if (spotifyArray.Length > 2)
+        {
+            rawMsg = "\"" + spotifyArray[1] + " - " + spotifyArray[2] + "\" by " + spotifyArray[0];
+        }
+        else
+        {
+            rawMsg = "\"" + spotifyArray[1] + "\" by " + spotifyArray[0];
+        }
         OscMessage oscMsg = new OscMessage("/chatbox/input", rawMsg, true);
         UDPSender udpSend = new UDPSender("127.0.0.1", 9000);
         udpSend.Send(oscMsg);
@@ -83,7 +99,14 @@ class SpotifyOSC
                 string[] spotifyTitleArray = spotifyProcess[0].MainWindowTitle.Split(" - ");
                 if (spotifyTitleArray.Length > 1)
                 {
-                    Console.Title = "VRChat Spotify OSC - (" + spotifyTitleArray[1] + " by " + spotifyTitleArray[0] + ")";
+                    if (spotifyTitleArray.Length > 2)
+                    {
+                        Console.Title = "VRChat Spotify OSC - (" + spotifyTitleArray[1] + " - " + spotifyTitleArray[2] + " by " + spotifyTitleArray[0] + ")";
+                    }
+                    else
+                    {
+                        Console.Title = "VRChat Spotify OSC - (" + spotifyTitleArray[1] + " by " + spotifyTitleArray[0] + ")";
+                    }
                     lastSong = spotifyTitleArray[1];
                     updateOSC(spotifyTitleArray);
                 }
