@@ -18,7 +18,7 @@ class SpotifyOSC
         entryStyle.AddStyle("Spotify OSC[a-z]*", Color.FromArgb(30, 215, 96), match => match);
         entryStyle.AddStyle("Skye/Vespei[a-z]*", Color.FromArgb(162, 155, 254), match => match);
         Console.WriteLineStyled(entryMsg, entryStyle);
-        String rawDiscord = "Join us on Discord! https://discord.gg/qRPkbhK49c";
+        String rawDiscord = "Join us on Discord! https://discord.gg/4pzjP679Mv";
         StyleSheet discordStyle = new StyleSheet(Color.White);
         discordStyle.AddStyle("Discord[a-z]*", Color.FromArgb(114, 137, 218), match => match);
         discordStyle.AddStyle("https://discord.gg/qRPkbhK49c[a-z]*", Color.FromArgb(9, 132, 227), match => match);
