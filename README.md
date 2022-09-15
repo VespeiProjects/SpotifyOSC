@@ -5,7 +5,7 @@ Show whats playing on spotify in your vrchat chatbox using VRChat's built in OSC
 
 ![Chatbox](https://i.imgur.com/ZUbXr5U_d.webp?maxwidth=760&fidelity=grand)
 
-Join us on [Discord](https://discord.gg/qRPkbhK49c)!
+Join us on [Discord](https://discord.gg/4pzjP679Mv)!
 
 # How To Use
 * In-Game go into radial menu > options > OSC and Enable OSC
