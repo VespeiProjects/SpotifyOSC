@@ -16,4 +16,9 @@ Join us on [Discord](https://discord.gg/4pzjP679Mv)!
 
 # Dependancies for compile
 * [SharpOSC](https://github.com/ValdemarOrn/SharpOSC)
+* FluentWPF
+* MaterialDesignThemes
+
+# Dependancies for SpotifyOSC Legacy
+* [SharpOSC](https://github.com/ValdemarOrn/SharpOSC)
 * [Colorful.Console](https://github.com/tomakita/Colorful.Console)
