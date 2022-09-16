@@ -20,6 +20,6 @@ Join us on [Discord](https://discord.gg/4pzjP679Mv)!
 * FluentWPF
 * MaterialDesignThemes
 
-# Dependancies for SpotifyOSC Legacy
+# Dependancies for Legacy
 * [SharpOSC](https://github.com/ValdemarOrn/SharpOSC)
 * [Colorful.Console](https://github.com/tomakita/Colorful.Console)
