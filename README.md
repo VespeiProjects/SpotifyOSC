@@ -8,6 +8,7 @@ Show whats playing on spotify in your vrchat chatbox using VRChat's built in OSC
 Join us on [Discord](https://discord.gg/4pzjP679Mv)!
 
 # How To Use
+* Extract to "SpotifyOSC", You need both SpotifyOSC.exe & SpotifyOSC.pdb
 * In-Game go into radial menu > options > OSC and Enable OSC
 * Launch SpotifyOSC.exe
 
