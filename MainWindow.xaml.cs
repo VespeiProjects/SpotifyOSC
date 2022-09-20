@@ -269,6 +269,9 @@ namespace SpotifyOSC_WPF
             {
                 SaveBtn.IsChecked = saveState;
                 TypingBtn.IsChecked = typingState;
+                PrefixBtn.IsChecked = prefixState;
+                UpdateTxt.Text = prefixTxt;
+
             });
             while (true)
             {
