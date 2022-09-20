@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using SharpOSC;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Diagnostics;
 
 namespace SpotifyOSC_WPF    
 {
@@ -21,12 +22,13 @@ namespace SpotifyOSC_WPF
         private bool saveState = false;
         private bool prefixState = true;
         private string prefixTxt = "PLAYING:";
+        private bool completedLoading = false;
         private string saveDirectory = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
         public MainWindow()
         {
-            loadSettings();
             InitializeComponent();
-            Thread backgroundApp = new Thread(new ThreadStart(beginCheck));
+            loadSettings();
+            Thread backgroundApp = new Thread(() => beginCheck(saveState, typingState, prefixState, prefixTxt));
             backgroundApp.Start();
         }
 
@@ -171,7 +173,6 @@ namespace SpotifyOSC_WPF
                 }
             };
             Item newItem = JsonFileReader.Read<Item>(saveDirectory + "/spotifyOSC/settings.json");
-            Debug.WriteLine(newItem.saveStateGlobal);
             saveState = newItem.saveStateGlobal;
             typingState = newItem.typeStateGlobal;
             prefixState = newItem.prefixStateGlobal;
@@ -179,14 +180,18 @@ namespace SpotifyOSC_WPF
             {
                 prefixTxt = newItem.prefixTxtGlobal;
             }
-            return;
+            completedLoading = true;
 
         }
         private void saveSettings()
         {
-            Item saveItem = new Item { saveStateGlobal = saveState, typeStateGlobal = typingState, prefixStateGlobal = prefixState, prefixTxtGlobal = prefixTxt };
-            string rawJson = JsonSerializer.Serialize(saveItem);
-            File.WriteAllText(saveDirectory + "/spotifyOSC/settings.json", rawJson);
+            if (completedLoading)
+            {
+                Item saveItem = new Item { saveStateGlobal = saveState, typeStateGlobal = typingState, prefixStateGlobal = prefixState, prefixTxtGlobal = prefixTxt };
+                string rawJson = JsonSerializer.Serialize(saveItem);
+                Debug.WriteLine(rawJson);
+                File.WriteAllText(saveDirectory + "/spotifyOSC/settings.json", rawJson);
+            }
         }
 
         private static class JsonFileReader
@@ -263,7 +268,7 @@ namespace SpotifyOSC_WPF
             }
         }
 
-        private void beginCheck()
+        private void beginCheck(bool saveState, bool typingState, bool prefixState, string prefixTxt)
         {
             this.Dispatcher.Invoke(() =>
             {
