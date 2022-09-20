@@ -283,6 +283,6 @@ namespace SpotifyOSC_WPF
         public bool saveStateGlobal { get; set; }
         public bool typeStateGlobal { get; set; }
         public bool prefixStateGlobal { get; set; }
-        public string prefixTxtGlobal { get; set; }
+        public string? prefixTxtGlobal { get; set; }
     }
 }
