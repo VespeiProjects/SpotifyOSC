@@ -1,4 +1,4 @@
-﻿using SourceChord.FluentWPF;
+using SourceChord.FluentWPF;
 using System;
 using System.Windows;
 using System.IO;
@@ -10,7 +10,6 @@ using System.Collections.Generic;
 using SharpOSC;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Diagnostics;
 
 namespace SpotifyOSC_WPF    
 {
@@ -20,6 +19,8 @@ namespace SpotifyOSC_WPF
         private (string lastSong, string lastFormat) lastListen = ("", "");
         private bool typingState = true;
         private bool saveState = false;
+        private bool prefixState = true;
+        private string prefixTxt = "PLAYING:";
         private string saveDirectory = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
         public MainWindow()
         {
@@ -53,7 +54,14 @@ namespace SpotifyOSC_WPF
                     if (saveState == true)
                     {
                         updateApp("Paused: " + truncateString(20, lastListen.lastFormat));
-                        updateOSC(lastListen.lastFormat, false);
+                        if (!prefixState)
+                        {
+                            updateOSC(lastListen.lastFormat, false);
+                        }
+                        else
+                        {
+                            updateOSC("PAUSED: " + lastListen.lastFormat, false);
+                        }
                     }
                     else
                     {
@@ -63,7 +71,14 @@ namespace SpotifyOSC_WPF
                 else
                 {
                     updateApp(truncateString(30, spotifyResponse.formatedText));
-                    updateOSC(spotifyResponse.formatedText, typingState);
+                    if (!prefixState)
+                    {
+                        updateOSC(spotifyResponse.formatedText, typingState);
+                    }
+                    else
+                    {
+                        updateOSC(prefixTxt + " " + spotifyResponse.formatedText, typingState);
+                    }
                 }
             }
             else
@@ -118,6 +133,27 @@ namespace SpotifyOSC_WPF
             saveSettings();
         }
 
+        private void statePrefixCheck(object sender, RoutedEventArgs e)
+        {
+            prefixState = true;
+            saveSettings();
+        }
+
+        private void statePrefixUncheck(object sender, RoutedEventArgs e)
+        {
+            prefixState = false;
+            saveSettings();
+        }
+
+        private void updatePrefix(object sender, RoutedEventArgs e)
+        {
+            this.Dispatcher.Invoke(() =>
+            {
+                prefixTxt = UpdateTxt.Text;
+                saveSettings();
+            });
+        }
+
         private void loadSettings()
         {
             if (!Directory.Exists(saveDirectory + "/spotifyOSC"))
@@ -138,12 +174,14 @@ namespace SpotifyOSC_WPF
             Debug.WriteLine(newItem.saveStateGlobal);
             saveState = newItem.saveStateGlobal;
             typingState = newItem.typeStateGlobal;
+            prefixState = newItem.prefixStateGlobal;
+            prefixTxt = newItem.prefixTxtGlobal;
             return;
 
         }
         private void saveSettings()
         {
-            Item saveItem = new Item { saveStateGlobal = saveState, typeStateGlobal = typingState };
+            Item saveItem = new Item { saveStateGlobal = saveState, typeStateGlobal = typingState, prefixStateGlobal = prefixState, prefixTxtGlobal = prefixTxt };
             string rawJson = JsonSerializer.Serialize(saveItem);
             File.WriteAllText(saveDirectory + "/spotifyOSC/settings.json", rawJson);
         }
@@ -239,7 +277,9 @@ namespace SpotifyOSC_WPF
 
     public class Item
     {
-        public bool saveStateGlobal { get; set; }
-        public bool typeStateGlobal { get; set; }
+        public bool saveStateGlobal { get; set; } = false;
+        public bool typeStateGlobal { get; set; } = true;
+        public bool prefixStateGlobal { get; set; } = true;
+        public string prefixTxtGlobal { get; set; } = "PLAYING:";
     }
 }
