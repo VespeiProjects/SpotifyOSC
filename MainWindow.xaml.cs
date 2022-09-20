@@ -175,7 +175,10 @@ namespace SpotifyOSC_WPF
             saveState = newItem.saveStateGlobal;
             typingState = newItem.typeStateGlobal;
             prefixState = newItem.prefixStateGlobal;
-            prefixTxt = newItem.prefixTxtGlobal;
+            if (!(newItem.prefixTxtGlobal == null))
+            {
+                prefixTxt = newItem.prefixTxtGlobal;
+            }
             return;
 
         }
@@ -277,9 +280,9 @@ namespace SpotifyOSC_WPF
 
     public class Item
     {
-        public bool saveStateGlobal { get; set; } = false;
-        public bool typeStateGlobal { get; set; } = true;
-        public bool prefixStateGlobal { get; set; } = true;
-        public string prefixTxtGlobal { get; set; } = "PLAYING:";
+        public bool saveStateGlobal { get; set; }
+        public bool typeStateGlobal { get; set; }
+        public bool prefixStateGlobal { get; set; }
+        public string prefixTxtGlobal { get; set; }
     }
 }
