@@ -10,7 +10,7 @@ using System.Collections.Generic;
 using SharpOSC;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Diagnostics;
+using System.Reflection;
 
 namespace SpotifyOSC_WPF    
 {
@@ -23,7 +23,7 @@ namespace SpotifyOSC_WPF
         private bool prefixState = true;
         private string prefixTxt = "PLAYING:";
         private bool completedLoading = false;
-        private string saveDirectory = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
+        string saveDirectory = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
         public MainWindow()
         {
             InitializeComponent();
@@ -165,6 +165,7 @@ namespace SpotifyOSC_WPF
                 {
                     File.Create(saveDirectory + "/spotifyOSC/settings.json");
                     saveSettings();
+                    completedLoading = true;
                     return;
                 }
                 else
@@ -181,7 +182,6 @@ namespace SpotifyOSC_WPF
                 prefixTxt = newItem.prefixTxtGlobal;
             }
             completedLoading = true;
-
         }
         private void saveSettings()
         {
@@ -189,7 +189,6 @@ namespace SpotifyOSC_WPF
             {
                 Item saveItem = new Item { saveStateGlobal = saveState, typeStateGlobal = typingState, prefixStateGlobal = prefixState, prefixTxtGlobal = prefixTxt };
                 string rawJson = JsonSerializer.Serialize(saveItem);
-                Debug.WriteLine(rawJson);
                 File.WriteAllText(saveDirectory + "/spotifyOSC/settings.json", rawJson);
             }
         }
