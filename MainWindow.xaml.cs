@@ -11,6 +11,8 @@ using SharpOSC;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Reflection;
+using System.Security.AccessControl;
+using System.Diagnostics;
 
 namespace SpotifyOSC_WPF    
 {
@@ -23,7 +25,8 @@ namespace SpotifyOSC_WPF
         private bool prefixState = true;
         private string prefixTxt = "PLAYING:";
         private bool completedLoading = false;
-        string saveDirectory = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
+        string saveDirectory = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData) + "/spotifyOSC";
+        FileInfo saveJSON = new FileInfo(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData) + "/spotifyOSC/settings.json");
         public MainWindow()
         {
             InitializeComponent();
@@ -158,14 +161,13 @@ namespace SpotifyOSC_WPF
 
         private void loadSettings()
         {
-            if (!Directory.Exists(saveDirectory + "/spotifyOSC"))
+            if (!Directory.Exists(saveDirectory))
             {
-                Directory.CreateDirectory(saveDirectory + "/spotifyOSC");
-                if (!File.Exists(saveDirectory + "/spotifyOSC/settings.json"))
+                Directory.CreateDirectory(saveDirectory);
+                if (!File.Exists(saveDirectory + "/settings.json"))
                 {
-                    File.Create(saveDirectory + "/spotifyOSC/settings.json");
-                    saveSettings();
                     completedLoading = true;
+                    saveSettings();
                     return;
                 }
                 else
@@ -173,7 +175,12 @@ namespace SpotifyOSC_WPF
                     return;
                 }
             };
-            Item newItem = JsonFileReader.Read<Item>(saveDirectory + "/spotifyOSC/settings.json");
+            FileStream readFromFile = saveJSON.Open(FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite);
+            StreamReader sr = new StreamReader(readFromFile);
+            string rawJson = sr.ReadToEnd();
+            Item? newItem = JsonSerializer.Deserialize<Item>(rawJson);
+            sr.Close();
+            readFromFile.Close();
             saveState = newItem.saveStateGlobal;
             typingState = newItem.typeStateGlobal;
             prefixState = newItem.prefixStateGlobal;
@@ -189,18 +196,14 @@ namespace SpotifyOSC_WPF
             {
                 Item saveItem = new Item { saveStateGlobal = saveState, typeStateGlobal = typingState, prefixStateGlobal = prefixState, prefixTxtGlobal = prefixTxt };
                 string rawJson = JsonSerializer.Serialize(saveItem);
-                File.WriteAllText(saveDirectory + "/spotifyOSC/settings.json", rawJson);
+                FileStream writeToFile = saveJSON.Open(FileMode.Create, FileAccess.ReadWrite, FileShare.ReadWrite);
+                StreamWriter sw = new StreamWriter(writeToFile);
+                sw.Write(rawJson);
+                sw.Close();
+                writeToFile.Close();
             }
         }
 
-        private static class JsonFileReader
-        {
-            public static T Read<T>(string filePath)
-            {
-                string text = File.ReadAllText(filePath);
-                return JsonSerializer.Deserialize<T>(text);
-            }
-        }
 
         private (int,string, string[]) fetchSong(Process[] spotifyProcess)
         {
