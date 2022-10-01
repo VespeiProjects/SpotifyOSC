@@ -12,7 +12,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Reflection;
 using System.Security.AccessControl;
-using System.Diagnostics;
 
 namespace SpotifyOSC_WPF    
 {
