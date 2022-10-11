@@ -173,21 +173,39 @@ namespace SpotifyOSC_WPF
                 {
                     return;
                 }
-            };
-            FileStream readFromFile = saveJSON.Open(FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite);
-            StreamReader sr = new StreamReader(readFromFile);
-            string rawJson = sr.ReadToEnd();
-            Item? newItem = JsonSerializer.Deserialize<Item>(rawJson);
-            sr.Close();
-            readFromFile.Close();
-            saveState = newItem.saveStateGlobal;
-            typingState = newItem.typeStateGlobal;
-            prefixState = newItem.prefixStateGlobal;
-            if (!(newItem.prefixTxtGlobal == null))
-            {
-                prefixTxt = newItem.prefixTxtGlobal;
             }
-            completedLoading = true;
+            else
+            {
+                if (!File.Exists(saveDirectory + "/settings.json"))
+                {
+                    completedLoading = true;
+                    saveSettings();
+                    return;
+                }
+            };
+            try
+            {
+                FileStream readFromFile = saveJSON.Open(FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite);
+                StreamReader sr = new StreamReader(readFromFile);
+                string rawJson = sr.ReadToEnd();
+                Item? newItem = JsonSerializer.Deserialize<Item>(rawJson);
+                sr.Close();
+                readFromFile.Close();
+                saveState = newItem.saveStateGlobal;
+                typingState = newItem.typeStateGlobal;
+                prefixState = newItem.prefixStateGlobal;
+                if (!(newItem.prefixTxtGlobal == null))
+                {
+                    prefixTxt = newItem.prefixTxtGlobal;
+                }
+                completedLoading = true;
+            }
+            catch
+            {
+                completedLoading = true;
+                saveSettings();
+                return;
+            }
         }
         private void saveSettings()
         {
