@@ -24,6 +24,7 @@ namespace SpotifyOSC_WPF
         private bool prefixState = true;
         private string prefixTxt = "PLAYING:";
         private bool completedLoading = false;
+        private bool preventAll = false;
         string saveDirectory = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData) + "/spotifyOSC";
         FileInfo saveJSON = new FileInfo(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData) + "/spotifyOSC/settings.json");
         public MainWindow()
@@ -101,19 +102,39 @@ namespace SpotifyOSC_WPF
 
         private void updateApp(string FormattedText)
         {
-            this.Dispatcher.Invoke(() => {
-                CurrentSong.Text = FormattedText;
-                this.SizeToContent = SizeToContent.Width;
-            });
+            if (!preventAll)
+            {
+                this.Dispatcher.Invoke(() => {
+                    CurrentSong.Text = FormattedText;
+                    this.SizeToContent = SizeToContent.Width;
+                });
+            }
         }
         private void updateOSC(string formatedText, bool typingEnabled)
         {
-            OscMessage oscMsg = new OscMessage("/chatbox/input", formatedText, true);
-            UDPSender udpSend = new UDPSender("127.0.0.1", 9000);
-            udpSend.Send(oscMsg);
-            OscMessage oscMsg1 = new OscMessage("/chatbox/typing", typingEnabled);
-            UDPSender udpSend1 = new UDPSender("127.0.0.1", 9000);
-            udpSend1.Send(oscMsg1);
+            if (!preventAll)
+            {
+                try
+                {
+                    OscMessage oscMsg = new OscMessage("/chatbox/input", formatedText, true);
+                    UDPSender udpSend = new UDPSender("127.0.0.1", 9000);
+                    udpSend.Send(oscMsg);
+                    OscMessage oscMsg1 = new OscMessage("/chatbox/typing", typingEnabled);
+                    UDPSender udpSend1 = new UDPSender("127.0.0.1", 9000);
+                    udpSend1.Send(oscMsg1);
+                }
+                catch
+                {
+                    preventAll = true;
+                    MessageBox.Show("Please check firewall settings for port 9000 and make sure to disconnect from any VPNs that may block ports.\n\nRestart SpotifyOSC after making changes.\n\nSpotifyOSC relies on communicating to 127.0.0.1:9000 which VRChat listens on.", "Port 9000 Denied");
+                    this.Dispatcher.Invoke(() => {
+                        AppState.Text = "Port Blocked";
+                        AppState.Foreground = Brushes.Red;
+                        CurrentSong.Text = "Restart SpotifyOSC";
+                        CurrentSong.Foreground = Brushes.Red;
+                    });
+                }
+            }
         }
 
         private void stateSaveCheck(object sender, RoutedEventArgs e)
@@ -209,7 +230,7 @@ namespace SpotifyOSC_WPF
         }
         private void saveSettings()
         {
-            if (completedLoading)
+            if (completedLoading && !preventAll)
             {
                 Item saveItem = new Item { saveStateGlobal = saveState, typeStateGlobal = typingState, prefixStateGlobal = prefixState, prefixTxtGlobal = prefixTxt };
                 string rawJson = JsonSerializer.Serialize(saveItem);
@@ -299,8 +320,11 @@ namespace SpotifyOSC_WPF
             });
             while (true)
             {
-                syncApp();
-                Thread.Sleep(3000);
+                if (!preventAll)
+                {
+                    syncApp();
+                    Thread.Sleep(3000);
+                }
             }
         }
     }
