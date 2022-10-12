@@ -18,7 +18,7 @@ namespace SpotifyOSC_WPF
     public partial class MainWindow : AcrylicWindow
     {
         private bool foundSpotify = false;
-        private (string lastSong, string lastFormat) lastListen = ("", "");
+        private (string lastSong, string lastFormat) lastListen = ("", "No Cached Song");
         private bool typingState = true;
         private bool saveState = false;
         private bool prefixState = true;
