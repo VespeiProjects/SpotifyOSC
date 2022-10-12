@@ -126,7 +126,7 @@ namespace SpotifyOSC_WPF
                 catch
                 {
                     preventAll = true;
-                    MessageBox.Show("Please check firewall settings for port 9000 and make sure to disconnect from any VPNs that may block ports.\n\nRestart SpotifyOSC after making changes.\n\nSpotifyOSC relies on communicating to 127.0.0.1:9000 which VRChat listens on.", "Port 9000 Denied");
+                    MessageBox.Show("Please check firewall settings for port 9000 and make sure to disconnect from any VPNs that may block ports.\n\nRestart SpotifyOSC after making changes.\n\nSpotifyOSC relies on communicating to 127.0.0.1:9000 which VRChat listens on.", "Unable to bind to port 9000");
                     this.Dispatcher.Invoke(() => {
                         AppState.Text = "Port Blocked";
                         AppState.Foreground = Brushes.Red;
