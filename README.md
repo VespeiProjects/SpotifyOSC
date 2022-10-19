@@ -1,6 +1,4 @@
-# SpotifyOSC
-Downlaod [latest](https://github.com/VespeiProjects/SpotifyOSC/releases/download/0.2.7/SpotifyOSC.zip)
-
+# SpotifyOSC [Latest Download](https://github.com/VespeiProjects/SpotifyOSC/releases/download/0.2.7/SpotifyOSC.zip)
 Show whats playing on spotify in your vrchat chatbox using VRChat's built in OSC Server
 
 ![Console Window](https://github.com/VespeiProjects/SpotifyOSC/blob/main/ChatboxConsole.png?raw=true)
