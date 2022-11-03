@@ -12,6 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Reflection;
 using System.Security.AccessControl;
+using System.Diagnostics;
 
 namespace SpotifyOSC_WPF    
 {
@@ -22,19 +23,83 @@ namespace SpotifyOSC_WPF
         private bool typingState = true;
         private bool saveState = false;
         private bool prefixState = true;
+        private bool statState = false;
         private string prefixTxt = "PLAYING:";
         private bool completedLoading = false;
         private bool preventAll = false;
+        private bool allowType = false;
+        private string lastCpu = "0%";
+        private string lastRam = "0%";
+        private string lastGpu = "0%";
+        PerformanceCounter cpuCounter;
+        PerformanceCounter ramCounter;
+        ulong ram = (new Microsoft.VisualBasic.Devices.ComputerInfo().TotalPhysicalMemory) / (1024 * 1024);
+
         string saveDirectory = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData) + "/spotifyOSC";
         FileInfo saveJSON = new FileInfo(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData) + "/spotifyOSC/settings.json");
         public MainWindow()
         {
             InitializeComponent();
             loadSettings();
-            Thread backgroundApp = new Thread(() => beginCheck(saveState, typingState, prefixState, prefixTxt));
+            Thread backgroundApp = new Thread(() => beginCheck(saveState, typingState, prefixState, prefixTxt, statState));
             backgroundApp.Start();
+            Thread compStat = new Thread(() => updateStats());
+            compStat.Start();
+            cpuCounter = new PerformanceCounter("Processor", "% Processor Time", "_Total");
+            ramCounter = new PerformanceCounter("Memory", "Available MBytes");
+
         }
 
+        public static async Task<float> GetGPUUsage()
+        {
+            try
+            {
+                var category = new PerformanceCounterCategory("GPU Engine");
+                var counterNames = category.GetInstanceNames();
+                var gpuCounters = new List<PerformanceCounter>();
+                var result = 0f;
+                foreach (string counterName in counterNames)
+                {
+                    if (counterName.EndsWith("engtype_3D"))
+                    {
+                        foreach (PerformanceCounter counter in category.GetCounters(counterName))
+                        {
+                            if (counter.CounterName == "Utilization Percentage")
+                            {
+                                gpuCounters.Add(counter);
+                            }
+                        }
+                    }
+                }
+
+                gpuCounters.ForEach(x =>
+                {
+                    _ = x.NextValue();
+                });
+
+                await Task.Delay(1000);
+
+                gpuCounters.ForEach(x =>
+                {
+                    result += x.NextValue();
+                });
+
+                return result;
+            }
+            catch
+            {
+                return 0f;
+            }
+        }
+        public string getCurrentCpuUsage()
+        {
+            return Math.Floor(cpuCounter.NextValue()) + "%";
+        }
+
+        public string getAvailableRAM()
+        {
+            return Math.Floor(((ram - ramCounter.NextValue()) / ram)*100) + "%";
+        }
         private void openDiscord_Click(object sender, RoutedEventArgs e)
         {
             OpenUrl("https://discord.gg/4pzjP679Mv");
@@ -56,20 +121,27 @@ namespace SpotifyOSC_WPF
                 (int responseCode, string formatedText, string[] rawResponse) spotifyResponse = fetchSong(spotifyProcess);
                 if (spotifyResponse.responseCode == 0)
                 {
-                    if (saveState == true)
+                    if (saveState == true && statState == false)
                     {
                         updateApp("Paused: " + truncateString(20, lastListen.lastFormat));
                         if (!prefixState)
                         {
-                            updateOSC(lastListen.lastFormat, false);
+                            allowType = false;
+                            updateOSC(lastListen.lastFormat);
                         }
                         else
                         {
-                            updateOSC("PAUSED: " + lastListen.lastFormat, false);
+                            allowType = false;
+                            updateOSC("PAUSED: " + lastListen.lastFormat);
                         }
                     }
                     else
                     {
+                        if (statState)
+                        {
+                            allowType = true;
+                            updateOSC("CPU: " + lastCpu + ", RAM: " + lastRam + ", GPU: " + lastGpu);
+                        }
                         updateApp("Spotify Paused");
                     }
                 }
@@ -78,11 +150,32 @@ namespace SpotifyOSC_WPF
                     updateApp(truncateString(30, spotifyResponse.formatedText));
                     if (!prefixState)
                     {
-                        updateOSC(spotifyResponse.formatedText, typingState);
+                        updateOSC(spotifyResponse.formatedText);
+                        Thread.Sleep(5000);
+                        if (statState)
+                        {
+                            allowType = true;
+                            updateOSC("CPU: " + lastCpu + ", RAM: " + lastRam + ", GPU: " + lastGpu);
+                        }
+                        else
+                        {
+                            allowType = true;
+                            updateOSC(spotifyResponse.formatedText);
+                        }
                     }
                     else
                     {
-                        updateOSC(prefixTxt + " " + spotifyResponse.formatedText, typingState);
+                        allowType = true;
+                        updateOSC(prefixTxt + " " + spotifyResponse.formatedText);
+                        Thread.Sleep(5000);
+                        if (statState)
+                        {
+                            updateOSC("CPU: " + lastCpu + ", RAM: " + lastRam + ", GPU: " + lastGpu);
+                        }
+                        else
+                        {
+                            updateOSC(prefixTxt + " " + spotifyResponse.formatedText);
+                        }
                     }
                 }
             }
@@ -110,7 +203,7 @@ namespace SpotifyOSC_WPF
                 });
             }
         }
-        private void updateOSC(string formatedText, bool typingEnabled)
+        private void updateOSC(string formatedText)
         {
             if (!preventAll)
             {
@@ -119,15 +212,41 @@ namespace SpotifyOSC_WPF
                     OscMessage oscMsg = new OscMessage("/chatbox/input", formatedText, true);
                     UDPSender udpSend = new UDPSender("127.0.0.1", 9000);
                     udpSend.Send(oscMsg);
-                    OscMessage oscMsg1 = new OscMessage("/chatbox/typing", typingEnabled);
-                    UDPSender udpSend1 = new UDPSender("127.0.0.1", 9000);
-                    udpSend1.Send(oscMsg1);
+                    updateTyping();
                 }
                 catch
                 {
                     preventAll = true;
                     MessageBox.Show("Please check firewall settings for port 9000 and make sure to disconnect from any VPNs that may block ports.\n\nRestart SpotifyOSC after making changes.\n\nSpotifyOSC relies on communicating to 127.0.0.1:9000 which VRChat listens on.", "Unable to bind to port 9000");
                     this.Dispatcher.Invoke(() => {
+                        AppState.Text = "Port Blocked";
+                        AppState.Foreground = Brushes.Red;
+                        CurrentSong.Text = "Restart SpotifyOSC";
+                        CurrentSong.Foreground = Brushes.Red;
+                    });
+                }
+            }
+        }
+
+        private void updateTyping()
+        {
+            if (!preventAll)
+            {
+                try
+                {
+                    if(allowType)
+                    {
+                        OscMessage oscMsg1 = new OscMessage("/chatbox/typing", typingState);
+                        UDPSender udpSend1 = new UDPSender("127.0.0.1", 9000);
+                        udpSend1.Send(oscMsg1);
+                    }
+                }
+                catch
+                {
+                    preventAll = true;
+                    MessageBox.Show("Please check firewall settings for port 9000 and make sure to disconnect from any VPNs that may block ports.\n\nRestart SpotifyOSC after making changes.\n\nSpotifyOSC relies on communicating to 127.0.0.1:9000 which VRChat listens on.", "Unable to bind to port 9000");
+                    this.Dispatcher.Invoke(() =>
+                    {
                         AppState.Text = "Port Blocked";
                         AppState.Foreground = Brushes.Red;
                         CurrentSong.Text = "Restart SpotifyOSC";
@@ -145,6 +264,17 @@ namespace SpotifyOSC_WPF
         private void stateSaveUncheck(object sender, RoutedEventArgs e)
         {
             saveState = false;
+            saveSettings();
+        }
+
+        private void statTypeCheck(object sender, RoutedEventArgs e)
+        {
+            statState = true;
+            saveSettings();
+        }
+        private void statTypeUncheck(object sender, RoutedEventArgs e)
+        {
+            statState = false;
             saveSettings();
         }
         private void stateTypeCheck(object sender, RoutedEventArgs e)
@@ -215,6 +345,7 @@ namespace SpotifyOSC_WPF
                 saveState = newItem.saveStateGlobal;
                 typingState = newItem.typeStateGlobal;
                 prefixState = newItem.prefixStateGlobal;
+                statState = newItem.statStateGlobal;
                 if (!(newItem.prefixTxtGlobal == null))
                 {
                     prefixTxt = newItem.prefixTxtGlobal;
@@ -232,7 +363,7 @@ namespace SpotifyOSC_WPF
         {
             if (completedLoading && !preventAll)
             {
-                Item saveItem = new Item { saveStateGlobal = saveState, typeStateGlobal = typingState, prefixStateGlobal = prefixState, prefixTxtGlobal = prefixTxt };
+                Item saveItem = new Item { saveStateGlobal = saveState, typeStateGlobal = typingState, prefixStateGlobal = prefixState, prefixTxtGlobal = prefixTxt, statStateGlobal = statState};
                 string rawJson = JsonSerializer.Serialize(saveItem);
                 FileStream writeToFile = saveJSON.Open(FileMode.Create, FileAccess.ReadWrite, FileShare.ReadWrite);
                 StreamWriter sw = new StreamWriter(writeToFile);
@@ -308,13 +439,14 @@ namespace SpotifyOSC_WPF
             }
         }
 
-        private void beginCheck(bool saveState, bool typingState, bool prefixState, string prefixTxt)
+        private void beginCheck(bool saveState, bool typingState, bool prefixState, string prefixTxt, bool statState)
         {
             this.Dispatcher.Invoke(() =>
             {
                 SaveBtn.IsChecked = saveState;
                 TypingBtn.IsChecked = typingState;
                 PrefixBtn.IsChecked = prefixState;
+                computerBtn.IsChecked = statState;
                 UpdateTxt.Text = prefixTxt;
 
             });
@@ -323,8 +455,26 @@ namespace SpotifyOSC_WPF
                 if (!preventAll)
                 {
                     syncApp();
-                    Thread.Sleep(3000);
+                    Thread.Sleep(5000);
                 }
+            }
+        }
+
+        private void updateStats()
+        {
+            while (true)
+            {
+                this.Dispatcher.Invoke(async () =>
+                {
+                    lastCpu = getCurrentCpuUsage();
+                    cpuBox.Text = "CPU: " + lastCpu;
+                    lastRam = getAvailableRAM();
+                    ramBox.Text = "Ram: " + lastRam;
+                    float gpuUsage = await GetGPUUsage();
+                    lastGpu = Math.Floor(gpuUsage) + "%";
+                    gpuBox.Text = "GPU: " + lastGpu;
+                });
+                Thread.Sleep(1000);
             }
         }
     }
@@ -335,5 +485,6 @@ namespace SpotifyOSC_WPF
         public bool typeStateGlobal { get; set; }
         public bool prefixStateGlobal { get; set; }
         public string? prefixTxtGlobal { get; set; }
+        public bool statStateGlobal { get; set; }
     }
 }
