@@ -11,11 +11,11 @@
         fw:AcrylicWindow.Enabled="True"
         ResizeMode="NoResize"
         SizeToContent="WidthAndHeight"
-        Title="SpotifyOSC" Height="550" Width="250">
+        Title="SpotifyOSC" Height="700" Width="300">
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="50*"/>
-            <RowDefinition Height="125*"/>
+            <RowDefinition Height="45*"/>
+            <RowDefinition Height="150*"/>
         </Grid.RowDefinitions>
         <Image Source="/Resource/SpotifyOSC.png" VerticalAlignment="Center" HorizontalAlignment="Center" Stretch="UniformToFill" Grid.Column="1" Width="90" Height="90"/>
         <Border CornerRadius="10" Grid.Row="1" Background="#10FFFFFF" Margin="10,10,10,10" >
@@ -42,10 +42,19 @@
                         <TextBlock Text="Chatbox Prefix                 " FontSize="12" FontWeight="Bold" Foreground="White" VerticalAlignment="Center" HorizontalAlignment="Left"/>
                         <ToggleButton Name="PrefixBtn" Style="{DynamicResource MaterialDesignFlatToggleButton}" VerticalAlignment="Center" HorizontalAlignment="Right" IsChecked="True" Checked="statePrefixCheck" Unchecked="statePrefixUncheck" Width="25" Height="25" Content="{materialDesign:PackIcon TooltipPlusOutline}" Margin="0,0,5,0"></ToggleButton>
                     </StackPanel>
-                    <TextBlock Text="" FontSize="14" Foreground="White"  VerticalAlignment="Center" HorizontalAlignment="Center"/>
                     <StackPanel Orientation="Horizontal" Margin="10,5,0,0" VerticalAlignment="Center" HorizontalAlignment="Center">
                         <TextBox Name="UpdateTxt" Width="100" MaxLength="15">PLAYING:</TextBox>
                         <Button Name="UpdateBtn" Click="updatePrefix" Height="25"  Style="{DynamicResource MaterialDesignFlatButton}" Foreground="White"  VerticalAlignment="Center" HorizontalAlignment="Center">Save</Button>
+                    </StackPanel>
+                    <StackPanel Margin="10,25,10,10" VerticalAlignment="Center" HorizontalAlignment="Center">
+                        <TextBlock Text="Computer Stats: " FontSize="14" FontWeight="Bold" Foreground="White" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                        <TextBlock Name="cpuBox" Text="CPU: 0%" FontSize="14" Foreground="White" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                        <TextBlock Name="ramBox" Text="Ram: 0%" FontSize="14" Foreground="White" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                        <TextBlock Name="gpuBox" Text="GPU: 0%" FontSize="14" Foreground="White" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="10,5,0,0" VerticalAlignment="Center" HorizontalAlignment="Center">
+                        <TextBlock Text="Show Computer Stats    " FontSize="12" FontWeight="Bold" Foreground="White" VerticalAlignment="Center" HorizontalAlignment="Left"/>
+                        <ToggleButton Name="computerBtn" Style="{DynamicResource MaterialDesignFlatToggleButton}" VerticalAlignment="Center" HorizontalAlignment="Right" IsChecked="True" Checked="statTypeCheck" Unchecked="statTypeUncheck" Width="25" Height="25" Content="{materialDesign:PackIcon Laptop}" Margin="0,0,5,0"></ToggleButton>
                     </StackPanel>
                 </StackPanel>
                 <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Margin="10,15,10,10">
