@@ -16,7 +16,7 @@ Join us on [Discord](https://discord.gg/4pzjP679Mv)!
 * SpotifyOSC requires [.NET 6.0 runtime](https://dotnet.microsoft.com/en-us/download/dotnet/thank-you/runtime-desktop-6.0.8-windows-x64-installer)
 
 # Dependancies for compile
-* [SharpOSC](https://github.com/ValdemarOrn/SharpOSC)
+* [SharpOSC Fork](https://github.com/VespeiProjects/SharpOSC)
 * FluentWPF
 * MaterialDesignThemes
 
